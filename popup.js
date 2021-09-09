@@ -1,35 +1,39 @@
+// アクティブなタブを取得する
 function getCurrentWindowTabs() {
-    return browser.tabs.query({currentWindow: true, active: true});
-}
+  return browser.tabs.query({currentWindow: true, active: true});
+};
 
-function runTranslation(e) {
-    e.preventDefault();
-    browser.storage.local.set({
-      target: document.getElementById("target").value
+function runTranslation() {
+  const targetLang = document.getElementById("target").value
+  browser.storage.local.set({
+    target: targetLang
+  });
+  getCurrentWindowTabs().then(tabs => {
+    browser.tabs.sendMessage(tabs[0].id, {
+      "function": "runTranslateService",
+      "target": targetLang
     });
-    browser.tabs.executeScript({file: "/youtube.js"});
-    getCurrentWindowTabs().then(tabs => {
-        const activeTab=tabs[0].id;
-        browser.pageAction.setPopup({tabId: activeTab, popup: "/popup2.html"});
-        window.close();
-    });
+  });
 
+  browser.runtime.sendMessage({
+    "function": "setPopup",
+    "file": "/popup2.html"
+  });
+};
+
+function restoreOptions() {
+
+  function setCurrentChoice(result) {
+    document.getElementById("target").value = result.target || "";
   };
-  
-  function restoreOptions() {
-  
-    function setCurrentChoice(result) {
-      document.getElementById("target").value = result.target || "";
-    };
-  
-    function onError(error) {
-      console.log(`Error: ${error}`);
-    };
-  
-    const getting = browser.storage.local.get("target");
-    getting.then(setCurrentChoice, onError);
+
+  function onError(error) {
+    console.log(`Error: ${error}`);
   };
-  
-  document.addEventListener("DOMContentLoaded", restoreOptions);
-  document.querySelector("form").addEventListener("submit", runTranslation);
-  
+
+  const getting = browser.storage.local.get("target");
+  getting.then(setCurrentChoice, onError);
+};
+
+document.addEventListener("DOMContentLoaded", restoreOptions);
+document.querySelector("form").addEventListener("submit", runTranslation);
