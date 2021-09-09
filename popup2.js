@@ -1,14 +1,18 @@
+const button = document.getElementById("stopButton")
 function getCurrentWindowTabs() {
     return browser.tabs.query({currentWindow: true, active: true});
-}
-function reset(){
-    const reloading = browser.tabs.reload()
-    reloading.then(function() {
-        getCurrentWindowTabs().then(tabs => {
-            const activeTab=tabs[0].id;
-            browser.pageAction.setPopup({tabId: activeTab, popup: "/popup.html"});
-            window.close();
+};
+
+function stopButton() {
+    browser.runtime.sendMessage({
+        "function": "setPopup",
+        "file": "/popup.html"
+    });
+    getCurrentWindowTabs().then(tabs => {
+        browser.tabs.sendMessage(tabs[0].id, {
+          "function": "stopTranslateService"
         });
     });
 };
-document.getElementById("stopButton").addEventListener('click', reset);
+
+button.onclick = stopButton();

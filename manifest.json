@@ -15,6 +15,20 @@
     "page": "options.html"
   },
 
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/live_chat*",
+        "*://*.youtube.com/watch*"
+      ],
+      "js": ["youtube.js"]
+    }
+  ],
+
+  "background": {
+    "scripts": ["background.js"]
+  },
+
   "page_action": {
     "browser_style": true,
     "default_icon": {
@@ -22,8 +36,7 @@
       "38": "icons/icon38.png"
     },
     "default_title": "Translate",
-    "default_popup": "popup.html",
-    "show_matches": ["*://*.youtube.com/live_chat*"]
+    "default_popup": "popup.html"
   },
 
   "applications": {
