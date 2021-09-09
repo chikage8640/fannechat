@@ -38,7 +38,14 @@ function messageFunction(message) {
     };
 };
 
-function runTranslateService() {
+// ユーザーにボタンを表示
+browser.runtime.sendMessage({
+    "function": "setPopup",
+    "file": "/popup.html"
+});
+browser.runtime.sendMessage({"function": "showPopup"});
+
+async function runTranslateService() {
     if (observerRan==true) {
         console.log("runTranslateServiceの多重呼び出しがかかりました。");
         return;
@@ -72,9 +79,10 @@ function runTranslateService() {
     };
 
     // すでにあるコメントの翻訳
-    target.querySelectorAll("yt-live-chat-text-message-renderer").forEach( (node) => {
-        nodeTranslater(node);
-    });
+    const alreadyMessages = target.querySelectorAll("yt-live-chat-text-message-renderer")
+    for (var i = 0; i < alreadyMessages.length; i++) {
+        await nodeTranslater(alreadyMessages[i]);
+    };
 
     // 対象ノードとオブザーバの設定を渡す
     observer.observe(target, config);
@@ -101,10 +109,10 @@ function stopTranslateService() {
 
 // オブザーバインスタンスを作成
 const observer = new MutationObserver((mutations) => {
-    mutations.forEach( mutation => {
-        mutation.addedNodes.forEach( node => {
-            nodeTranslater(node);
-        });
+    mutations.forEach(async(mutation) => {
+        for (var i = 0; i < mutation.addedNodes.length; i++) {
+            await nodeTranslater(mutation.addedNodes[i]);
+        };
     });
 });
 
@@ -114,23 +122,23 @@ const config = {
 };
 
 // ノードの翻訳を下準備する
-function nodeTranslater(node) {
+async function nodeTranslater(node) {
     // コメントであるかのチェック
     if (node.tagName === "YT-LIVE-CHAT-TEXT-MESSAGE-RENDERER") {
         // 翻訳するノードの取り出し
         let messageNode = node.childNodes.item(2).childNodes.item(3);
-        messageNode.childNodes.forEach( node => {
+        messageNode.childNodes.forEach( async(node) => {
             // テキストだけ翻訳にかける
             if (node.nodeName === "#text") {
                 // 翻訳にかける
-                nodeTranslate(node);
+                await nodeTranslate(node);
             };
         });
     };
 };
 
 // ノードごとほおりこむと翻訳される
-function nodeTranslate(node) {
+async function nodeTranslate(node) {
     // 翻訳する
 
     // 送るデータ
@@ -150,22 +158,11 @@ function nodeTranslate(node) {
         body: JSON.stringify(data)
     };
 
-    fetch(translaterUrl, param)
-        .then((res)=>{
-            return(res.json());
-        })
-        .then((jsonRes)=>{
-            try{
-                node.nodeValue = jsonRes.text;
-            }catch{
-                console.log("Target node has already dead.(nodeTranslate)")
-            };
-        });
-};
+    const translatedText = await (await fetch(translaterUrl, param)).json();
 
-// ユーザーにボタンを表示
-browser.runtime.sendMessage({
-    "function": "setPopup",
-    "file": "/popup.html"
-});
-browser.runtime.sendMessage({"function": "showPopup"});
+    try{
+        node.nodeValue = await translatedText.text;
+    }catch{
+        console.log("Target node has already dead.(nodeTranslate)");
+    };
+};
