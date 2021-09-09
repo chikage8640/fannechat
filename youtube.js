@@ -38,13 +38,6 @@ function messageFunction(message) {
     };
 };
 
-// ユーザーにボタンを表示
-browser.runtime.sendMessage({
-    "function": "setPopup",
-    "file": "/popup.html"
-});
-browser.runtime.sendMessage({"function": "showPopup"});
-
 async function runTranslateService() {
     if (observerRan==true) {
         console.log("runTranslateServiceの多重呼び出しがかかりました。");
