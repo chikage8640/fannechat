@@ -30,15 +30,19 @@ function messageFunction(message) {
 
 // アドレスバーボタンを消す
 browser.tabs.onUpdated.addListener(function(tabId, info, tab) {
-    if (info.status == 'complete' && tab.url.indexOf('youtube.com/live_chat') !== -1 || tab.url.indexOf('youtube.com/watch') !== -1) {
-            // ポップアップをセットする
-            browser.pageAction.setPopup({tabId: tabId, popup: "/popup.html"});
-            // ポップアップを表示する
-            browser.pageAction.show(tabId);
+    if (info.status == 'complete' && (tab.url.indexOf('youtube.com/live_chat') !== -1 || tab.url.indexOf('youtube.com/watch') !== -1)) {
+        // 念のため翻訳を止める
+        browser.tabs.sendMessage(tabId, {
+            "function": "stopTranslateService"
+          });
+        // ポップアップをセットする
+        browser.pageAction.setPopup({tabId: tabId, popup: "/popup.html"});
+        // ポップアップを表示する
+        browser.pageAction.show(tabId);
     };
     if (info.status == 'loading') {
-            // ポップアップを非表示にする
-            browser.pageAction.hide(tabId);
+        // ポップアップを非表示にする
+        browser.pageAction.hide(tabId);
     };
 });
 
