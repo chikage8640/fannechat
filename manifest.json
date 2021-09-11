@@ -18,8 +18,7 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.youtube.com/live_chat*",
-        "*://*.youtube.com/watch*"
+        "*://*.youtube.com/*"
       ],
       "js": ["youtube.js"]
     }
